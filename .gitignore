@@ -1,0 +1,15 @@
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+build/
+.flutter-plugins-dependencies
+android/.gradle/
+android/local.properties
+ios/Flutter/.last_build_id
+
+# Firebase configuration may contain project identifiers; keep local generated config out of source if desired.
+# Do not commit service-account JSON or private credentials.
+**/*service-account*.json
