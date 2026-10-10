@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    match /users/{userId} {
+      allow create: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly([
+          'uid', 'displayName', 'email', 'createdAt',
+          'referralCode', 'role', 'accountStatus'
+        ])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.role == 'user'
+        && request.resource.data.accountStatus == 'active';
+
+      // A user may read their own profile only.
+      allow read: if signedIn() && request.auth.uid == userId;
+
+      // Do not let clients edit role, balance, referral rewards, or account status.
+      // Profile editing should later be added with a strict field allow-list.
+      allow update, delete: if false;
+    }
+
+    // Tasks should be readable to signed-in users, but only trusted admins/backend
+    // should create/update them. Add custom claims for admin access when implemented.
+    match /tasks/{taskId} {
+      allow read: if signedIn() && resource.data.status == 'active';
+      allow write: if false;
+    }
+
+    // Client apps cannot write to wallet, rewards, referrals, or withdrawal records.
+    // Create these through a trusted backend / Cloud Functions after validation.
+    match /walletLedger/{entryId} {
+      allow read, write: if false;
+    }
+    match /referrals/{referralId} {
+      allow read, write: if false;
+    }
+    match /withdrawals/{withdrawalId} {
+      allow read, write: if false;
+    }
+  }
+}
